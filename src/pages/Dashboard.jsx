@@ -4,7 +4,7 @@ import{clearSession}from"../lib/auth";
 import{STAGES,PROCEDURES,SOURCES,PROC_COLORS,NAVY,TEAL,CYAN,GOLD,BG,BORDER,MUTED,GREEN,RED}from"../lib/constants";
 import ClientDossier from"../components/ClientDossier/index";
 import NewClientForm from"../components/NewClientForm";
-import UserSettings from"../components/UserSettings;
+import UserSettings from"../components/UserSettings";
 const sl=(lang,fr,en)=>lang==="FR"?fr:en;
 const stageOf=n=>STAGES[n-1]||STAGES[0];
 const procBg=p=>(PROC_COLORS[p]||["#E2E8F0","#475569"])[0];
