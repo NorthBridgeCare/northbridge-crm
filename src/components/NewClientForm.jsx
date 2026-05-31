@@ -1,148 +1,77 @@
-import { useState } from "react";
-import { createClient, addAuditLog } from "../lib/api";
-import { PROCEDURES, SOURCES, NAVY, TEAL, BG, BORDER, MUTED } from "../lib/constants";
-import { t } from "../lib/i18n";
-
-const PROVINCES = ["Ontario","Québec","Alberta","Colombie-Britannique","Autre"];
-const REGIONS   = ["Ontario","Gatineau","Québec","GTA","Autre"];
-
-export default function NewClientForm({ lang, user, onSave, onCancel }) {
-  const sl = (k) => t(lang, k);
-  const [form, setForm] = useState({
-    first_name:"", last_name:"", email:"", phone:"",
-    language:"FR", province_residence:"Ontario", region:"Ontario",
-    procedure:"Transplantation capillaire", source:"Instagram",
-    company_prefix:"NB", province_code:"ON",
-    is_transfer_from_dany:false, dany_dossier_number:"",
-    travel_group:"Solo", notes:"",
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  const set = (k,v) => setForm(p => ({...p,[k]:v}));
-
-  const handleSave = async () => {
-    if (!form.first_name.trim() || !form.last_name.trim()) { setError("Prénom et nom obligatoires."); return; }
+import{useState}from"react";
+import{createClient,addAudit}from"../lib/api";
+import{PROCEDURES,SOURCES,NAVY,TEAL,BG,BORDER,MUTED}from"../lib/constants";
+const sl=(l,fr,en)=>l==="FR"?fr:en;
+const PROVINCES=["Ontario","Québec","Alberta","Colombie-Britannique","Autre"];
+const REGIONS=["Ontario","Gatineau","Québec","GTA","Autre"];
+export default function NewClientForm({lang,user,onSave,onCancel}){
+  const[f,setF]=useState({first_name:"",last_name:"",email:"",phone:"",language:"FR",province_residence:"Ontario",region:"Ontario",procedure:"Transplantation capillaire",source:"Instagram",company_prefix:"NB",province_code:"ON",is_transfer_from_dany:false,dany_dossier_number:"",travel_group:"Solo",notes:""});
+  const[saving,setSaving]=useState(false);
+  const[err,setErr]=useState("");
+  const set=(k,v)=>setF(p=>({...p,[k]:v}));
+  const save=async()=>{
+    if(!f.first_name.trim()||!f.last_name.trim()){setErr(sl(lang,"Prénom et nom obligatoires.","First name and last name required."));return;}
     setSaving(true);
-    try {
-      const [newClient] = await createClient({ ...form, current_stage:1 });
-      onSave(newClient);
-    } catch(e) { setError(e.message); }
+    try{const[nc]=await createClient({...f,current_stage:1});onSave(nc);}
+    catch(e){setErr(e.message);}
     setSaving(false);
   };
-
-  return (
-    <div style={{ fontFamily:"'DM Sans','Segoe UI',sans-serif", background:BG, minHeight:"100vh", padding:24, color:"#1A1A2E" }}>
-      <div style={{ maxWidth:700, margin:"0 auto", background:"#fff", borderRadius:14, boxShadow:"0 4px 20px rgba(0,0,0,.08)", overflow:"hidden" }}>
-        <div style={{ background:NAVY, padding:"16px 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+  const s={
+    wrap:{fontFamily:"'DM Sans','Segoe UI',sans-serif",background:BG,minHeight:"100vh",padding:24},
+    card:{maxWidth:720,margin:"0 auto",background:"#fff",borderRadius:14,boxShadow:"0 4px 20px rgba(0,0,0,.08)",overflow:"hidden"},
+    hdr:{background:NAVY,padding:"16px 24px",display:"flex",justifyContent:"space-between",alignItems:"center"},
+    body:{padding:24},
+    grid:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14},
+    field:{},
+    label:{fontSize:12,fontWeight:600,color:MUTED,display:"block",marginBottom:4},
+    input:{width:"100%",padding:"9px 12px",border:`1px solid ${BORDER}`,borderRadius:8,fontSize:14,outline:"none",boxSizing:"border-box"},
+    select:{width:"100%",padding:"9px 12px",border:`1px solid ${BORDER}`,borderRadius:8,fontSize:14,boxSizing:"border-box"},
+    btn:{background:TEAL,color:"#fff",border:"none",borderRadius:10,padding:"11px 24px",fontSize:14,fontWeight:700,cursor:"pointer"},
+    btnSec:{background:BG,color:MUTED,border:`1px solid ${BORDER}`,borderRadius:10,padding:"11px 18px",fontSize:14,cursor:"pointer"},
+  };
+  return(
+    <div style={s.wrap}>
+      <div style={s.card}>
+        <div style={s.hdr}>
           <div>
-            <div style={{ color:"#fff", fontWeight:700, fontSize:16 }}>{sl('newClient').replace('+ ','')}</div>
-            <div style={{ color:"#1BC4D8", fontSize:12, marginTop:2 }}>Étape 1 — Découverte</div>
+            <div style={{color:"#fff",fontWeight:700,fontSize:16}}>{sl(lang,"Nouveau dossier client","New client file")}</div>
+            <div style={{color:"#1BC4D8",fontSize:12,marginTop:2}}>{sl(lang,"Étape 1 — Découverte","Stage 1 — Discovery")}</div>
           </div>
-          <button onClick={onCancel} style={{ background:"rgba(255,255,255,.1)", color:"#fff", border:"0.5px solid rgba(255,255,255,.2)", borderRadius:8, padding:"5px 12px", fontSize:12, cursor:"pointer" }}>✕ Annuler</button>
+          <button onClick={onCancel} style={{background:"rgba(255,255,255,.1)",color:"#fff",border:"0.5px solid rgba(255,255,255,.2)",borderRadius:8,padding:"5px 12px",fontSize:12,cursor:"pointer"}}>✕ {sl(lang,"Annuler","Cancel")}</button>
         </div>
-
-        <div style={{ padding:24 }}>
-          {error && <div style={{ background:"#FEE2E2", color:"#991B1B", padding:"8px 12px", borderRadius:8, fontSize:13, marginBottom:16 }}>{error}</div>}
-
-          <div style={{ fontSize:13, fontWeight:600, color:NAVY, marginBottom:12, paddingBottom:6, borderBottom:`1px solid ${BORDER}` }}>Informations personnelles</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:20 }}>
-            {[
-              { k:"first_name", l:sl('firstName'), ph:"John" },
-              { k:"last_name",  l:sl('lastName'),  ph:"Doe"  },
-              { k:"email",      l:"Email",          ph:"john@email.com" },
-              { k:"phone",      l:sl('phone'),      ph:"613-555-0100"   },
-            ].map(f => (
-              <div key={f.k}>
-                <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>{f.l}</label>
-                <input value={form[f.k]} onChange={e => set(f.k, e.target.value)} placeholder={f.ph}
-                  style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14, outline:"none", boxSizing:"border-box" }} />
-              </div>
+        <div style={s.body}>
+          {err&&<div style={{background:"#FEE2E2",color:"#991B1B",padding:"8px 12px",borderRadius:8,fontSize:13,marginBottom:16}}>{err}</div>}
+          <div style={{fontSize:13,fontWeight:600,color:NAVY,marginBottom:12,paddingBottom:6,borderBottom:`1px solid ${BORDER}`}}>{sl(lang,"Informations personnelles","Personal information")}</div>
+          <div style={s.grid}>
+            {[{k:"first_name",l:sl(lang,"Prénom *","First name *"),ph:"Jean"},{k:"last_name",l:sl(lang,"Nom *","Last name *"),ph:"Tremblay"},{k:"email",l:"Email",ph:"jean@email.com"},{k:"phone",l:sl(lang,"Téléphone","Phone"),ph:"+1 514 555 0100"}].map(fd=>(
+              <div key={fd.k}><label style={s.label}>{fd.l}</label><input value={f[fd.k]} onChange={e=>set(fd.k,e.target.value)} placeholder={fd.ph} style={s.input}/></div>
             ))}
           </div>
-
-          <div style={{ fontSize:13, fontWeight:600, color:NAVY, marginBottom:12, paddingBottom:6, borderBottom:`1px solid ${BORDER}` }}>Détails du dossier</div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:20 }}>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>{sl('procedure')}</label>
-              <select value={form.procedure} onChange={e => set('procedure', e.target.value)}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14 }}>
-                {PROCEDURES.map(p => <option key={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>{sl('source')}</label>
-              <select value={form.source} onChange={e => set('source', e.target.value)}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14 }}>
-                {SOURCES.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>{sl('clientLang')}</label>
-              <select value={form.language} onChange={e => set('language', e.target.value)}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14 }}>
-                <option value="FR">Français (FR)</option>
-                <option value="EN">English (EN)</option>
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>Province</label>
-              <select value={form.province_residence} onChange={e => set('province_residence', e.target.value)}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14 }}>
-                {PROVINCES.map(p => <option key={p}>{p}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>Région</label>
-              <select value={form.region} onChange={e => set('region', e.target.value)}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14 }}>
-                {REGIONS.map(r => <option key={r}>{r}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>Groupe de voyage</label>
-              <select value={form.travel_group} onChange={e => set('travel_group', e.target.value)}
-                style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14 }}>
-                <option value="Solo">Solo</option>
-                <option value="Groupe NB">Groupe NorthBridge</option>
-                <option value="Groupe Dany">Groupe Dany</option>
-                <option value="Groupe personnalisé">Groupe personnalisé</option>
-              </select>
-            </div>
+          <div style={{fontSize:13,fontWeight:600,color:NAVY,marginBottom:12,paddingBottom:6,borderBottom:`1px solid ${BORDER}`}}>{sl(lang,"Détails du dossier","File details")}</div>
+          <div style={s.grid}>
+            <div><label style={s.label}>{sl(lang,"Procédure","Procedure")}</label><select value={f.procedure} onChange={e=>set("procedure",e.target.value)} style={s.select}>{PROCEDURES.map(p=><option key={p}>{p}</option>)}</select></div>
+            <div><label style={s.label}>Source</label><select value={f.source} onChange={e=>set("source",e.target.value)} style={s.select}>{SOURCES.map(s=><option key={s}>{s}</option>)}</select></div>
+            <div><label style={s.label}>{sl(lang,"Langue client","Client language")}</label><select value={f.language} onChange={e=>set("language",e.target.value)} style={s.select}><option value="FR">Français (FR)</option><option value="EN">English (EN)</option></select></div>
+            <div><label style={s.label}>Province</label><select value={f.province_residence} onChange={e=>set("province_residence",e.target.value)} style={s.select}>{PROVINCES.map(p=><option key={p}>{p}</option>)}</select></div>
+            <div><label style={s.label}>{sl(lang,"Région","Region")}</label><select value={f.region} onChange={e=>set("region",e.target.value)} style={s.select}>{REGIONS.map(r=><option key={r}>{r}</option>)}</select></div>
+            <div><label style={s.label}>{sl(lang,"Groupe de voyage","Travel group")}</label><select value={f.travel_group} onChange={e=>set("travel_group",e.target.value)} style={s.select}><option value="Solo">Solo</option><option value="Groupe NB">Groupe NorthBridge</option><option value="Groupe Dany">Groupe Dany</option><option value="Groupe personnalisé">Groupe personnalisé</option></select></div>
           </div>
-
-          <div style={{ marginBottom:16 }}>
-            <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:13, fontWeight:600, color:NAVY }}>
-              <input type="checkbox" checked={form.is_transfer_from_dany} onChange={e => set('is_transfer_from_dany', e.target.checked)} />
-              Dossier transféré de D Plastic Surgery (Dany)
+          <div style={{marginBottom:14}}>
+            <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:13,fontWeight:600,color:NAVY}}>
+              <input type="checkbox" checked={f.is_transfer_from_dany} onChange={e=>set("is_transfer_from_dany",e.target.checked)}/>
+              {sl(lang,"Dossier transféré de D Plastic Surgery (Dany)","File transferred from D Plastic Surgery (Dany)")}
             </label>
-            {form.is_transfer_from_dany && (
-              <div style={{ marginTop:10 }}>
-                <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>Numéro de dossier Dany (DP-QC-XX-XXX)</label>
-                <input value={form.dany_dossier_number} onChange={e => set('dany_dossier_number', e.target.value)} placeholder="DP-QC-26-001"
-                  style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14, boxSizing:"border-box" }} />
-              </div>
-            )}
+            {f.is_transfer_from_dany&&<div style={{marginTop:10}}><label style={s.label}>{sl(lang,"Numéro de dossier Dany","Dany file number")}</label><input value={f.dany_dossier_number} onChange={e=>set("dany_dossier_number",e.target.value)} placeholder="DP-QC-26-001" style={s.input}/></div>}
           </div>
-
-          <div style={{ marginBottom:24 }}>
-            <label style={{ fontSize:12, fontWeight:600, color:MUTED, display:"block", marginBottom:4 }}>Notes internes</label>
-            <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3}
-              style={{ width:"100%", padding:"9px 12px", border:`1px solid ${BORDER}`, borderRadius:8, fontSize:14, resize:"vertical", boxSizing:"border-box" }} />
+          <div style={{marginBottom:20}}><label style={s.label}>Notes</label><textarea value={f.notes} onChange={e=>set("notes",e.target.value)} rows={3} style={{...s.input,resize:"vertical"}}/></div>
+          <div style={{background:"#E6F1FB",borderRadius:8,padding:"10px 12px",marginBottom:20,fontSize:12,color:"#0C447C"}}>
+            ℹ️ {sl(lang,`Numéro de dossier généré automatiquement. Documents envoyés en ${f.language==="FR"?"Français":"English"}.`,`Dossier number generated automatically. Documents sent in ${f.language==="FR"?"French":"English"}.`)}
           </div>
-
-          <div style={{ background:"#E6F1FB", borderRadius:8, padding:"10px 12px", marginBottom:20, fontSize:12, color:"#0C447C" }}>
-            ℹ️ Le numéro de dossier sera généré automatiquement. Le client recevra ses documents en <strong>{form.language === 'FR' ? 'Français' : 'English'}</strong>.
-          </div>
-
-          <div style={{ display:"flex", gap:10 }}>
-            <button onClick={handleSave} disabled={saving || !form.first_name.trim() || !form.last_name.trim()}
-              style={{ background:saving||!form.first_name.trim()?MUTED:TEAL, color:"#fff", border:"none", borderRadius:10, padding:"11px 24px", fontSize:14, fontWeight:700, cursor:"pointer", flex:1 }}>
-              {saving ? "Création..." : sl('createDossier')}
+          <div style={{display:"flex",gap:10}}>
+            <button onClick={save} disabled={saving||!f.first_name.trim()||!f.last_name.trim()} style={{...s.btn,opacity:saving||!f.first_name.trim()?.6:1,flex:1}}>
+              {saving?"...":sl(lang,"Créer le dossier","Create file")}
             </button>
-            <button onClick={onCancel} style={{ background:BG, color:MUTED, border:`1px solid ${BORDER}`, borderRadius:10, padding:"11px 18px", fontSize:14, cursor:"pointer" }}>
-              {sl('cancel')}
-            </button>
+            <button onClick={onCancel} style={s.btnSec}>{sl(lang,"Annuler","Cancel")}</button>
           </div>
         </div>
       </div>

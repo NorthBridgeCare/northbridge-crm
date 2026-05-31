@@ -1,57 +1,34 @@
-import { SUPABASE_URL, SUPABASE_KEY } from './constants';
-
-export const api = async (endpoint, options = {}) => {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
-    headers: {
-      "apikey": SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`,
-      "Content-Type": "application/json",
-      ...(options.prefer ? { "Prefer": options.prefer } : {}),
-      ...options.headers,
-    },
-    ...options,
+import{SUPABASE_URL,SUPABASE_KEY}from'./constants';
+const H={
+  "apikey":SUPABASE_KEY,
+  "Authorization":`Bearer ${SUPABASE_KEY}`,
+  "Content-Type":"application/json",
+};
+export const api=async(ep,opts={})=>{
+  const res=await fetch(`${SUPABASE_URL}/rest/v1/${ep}`,{
+    headers:{...H,...(opts.prefer?{"Prefer":opts.prefer}:{}),...(opts.headers||{})},
+    ...opts,
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err);
-  }
-  if (res.status === 204) return null;
+  if(!res.ok)throw new Error(await res.text());
+  if(res.status===204)return null;
   return res.json();
 };
-
-// Users
-export const getUsers = () => api("users?select=id,first_name,last_name,role,lang_pref,is_first_login,password_reset_required&order=first_name.asc");
-export const getUserById = (id) => api(`users?id=eq.${id}&select=*`);
-export const updateUser = (id, data) => api(`users?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(data) });
-
-// Clients
-export const getClients = () => api("clients?select=*&order=created_at.desc");
-export const createClient = (data) => api("clients", { method:"POST", prefer:"return=representation", body:JSON.stringify(data) });
-export const updateClient = (id, data) => api(`clients?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(data) });
-export const deleteClient = (id) => api(`clients?id=eq.${id}`, { method:"DELETE" });
-
-// Locking
-export const lockDossier = (clientId, userId) =>
-  api("active_sessions", { method:"POST", prefer:"return=representation",
-    body:JSON.stringify({ client_id:clientId, user_id:userId }) });
-export const unlockDossier = (clientId) =>
-  api(`active_sessions?client_id=eq.${clientId}`, { method:"DELETE" });
-export const getActiveSessions = () => api("active_sessions?select=*");
-
-// Payments
-export const getPayments = (clientId) => api(`payments?client_id=eq.${clientId}&select=*&order=created_at.desc`);
-export const createPayment = (data) => api("payments", { method:"POST", prefer:"return=representation", body:JSON.stringify(data) });
-export const updatePayment = (id, data) => api(`payments?id=eq.${id}`, { method:"PATCH", body:JSON.stringify(data) });
-
-// Documents
-export const getDocuments = (clientId) => api(`documents?client_id=eq.${clientId}&select=*&order=created_at.desc`);
-export const createDocument = (data) => api("documents", { method:"POST", prefer:"return=representation", body:JSON.stringify(data) });
-
-// Comms log
-export const getCommsLog = (clientId) => api(`communications_log?client_id=eq.${clientId}&select=*&order=sent_at.desc`);
-export const addCommsLog = (data) => api("communications_log", { method:"POST", body:JSON.stringify(data) });
-
-// Audit log
-export const addAuditLog = (userId, action, tableN, recordId, details) =>
-  api("audit_log", { method:"POST",
-    body:JSON.stringify({ user_id:userId, action, table_name:tableN, record_id:recordId, details }) });
+export const getUsers=()=>api("users?select=*&order=first_name.asc");
+export const updateUser=(id,d)=>api(`users?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(d)});
+export const getClients=(includeArchived=false)=>api(`clients?select=*${includeArchived?'':'&status=eq.active'}&order=created_at.desc`);
+export const createClient=d=>api("clients",{method:"POST",prefer:"return=representation",body:JSON.stringify(d)});
+export const updateClient=(id,d)=>api(`clients?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(d)});
+export const getPayments=id=>api(`payments?client_id=eq.${id}&select=*&order=created_at.desc`);
+export const createPayment=d=>api("payments",{method:"POST",prefer:"return=representation",body:JSON.stringify(d)});
+export const updatePayment=(id,d)=>api(`payments?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(d)});
+export const getDocuments=id=>api(`documents?client_id=eq.${id}&select=*&order=created_at.desc`);
+export const createDocument=d=>api("documents",{method:"POST",prefer:"return=representation",body:JSON.stringify(d)});
+export const getCommsLog=id=>api(`communications_log?client_id=eq.${id}&select=*&order=sent_at.desc`);
+export const addCommsLog=d=>api("communications_log",{method:"POST",body:JSON.stringify(d)});
+export const getMedicalForms=id=>api(`medical_forms?client_id=eq.${id}&select=*`);
+export const createMedicalForm=d=>api("medical_forms",{method:"POST",prefer:"return=representation",body:JSON.stringify(d)});
+export const updateMedicalForm=(id,d)=>api(`medical_forms?id=eq.${id}`,{method:"PATCH",body:JSON.stringify(d)});
+export const getSessions=()=>api("active_sessions?select=*");
+export const lockClient=(cid,uid)=>api("active_sessions",{method:"POST",prefer:"return=representation",body:JSON.stringify({client_id:cid,user_id:uid})});
+export const unlockClient=cid=>api(`active_sessions?client_id=eq.${cid}`,{method:"DELETE"});
+export const addAudit=(uid,action,tbl,rid,details)=>api("audit_log",{method:"POST",body:JSON.stringify({user_id:uid,action,table_name:tbl,record_id:rid,details})});
