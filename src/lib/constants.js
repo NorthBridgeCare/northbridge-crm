@@ -21,7 +21,8 @@ export const PROCEDURES = [
   "LipoHD Vaser","Chirurgie obésité","Soins dentaires",
 ];
 export const SOURCES = [
-  "Instagram","Facebook","TikTok","Dany (Québec)","Référence client","Site web","Organique","Autre",
+  "Instagram","Facebook","TikTok","LinkedIn","X (Twitter)",
+  "D Plastic Surgery","Référence client","Google / SEO","Site web","Autre",
 ];
 export const PROC_COLORS = {
   "Transplantation capillaire":["#A4E988","#1B5E20"],

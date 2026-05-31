@@ -87,13 +87,21 @@ export default function ClientDossier({client,user,lang,allUsers,onClose,onUpdat
     if(tab==="log")getCommsLog(client.id).then(d=>setLog(d||[])).catch(()=>{});
   },[tab,client.id]);
 
+  const[stageErr,setStageErr]=useState("");
+  const[stageErr,setStageErr]=useState("");
   const updateStage=async n=>{
     if(client.readOnly)return;
     const ns=parseInt(n);
-    setStage(ns);
-    await updateClient(client.id,{current_stage:ns});
-    await addAudit(user.id,"STAGE_CHANGE","clients",client.id,{from:client.current_stage,to:ns});
-    onUpdate({...client,current_stage:ns});
+    const prevStage=stage;
+    setStage(ns);setStageErr("");
+    try{
+      await updateClient(client.id,{current_stage:ns});
+      onUpdate({...client,current_stage:ns});
+    }catch(e){
+      setStage(prevStage);
+      setStageErr("Erreur sauvegarde: "+e.message);
+      setTimeout(()=>setStageErr(""),5000);
+    }
   };
 
   const toggleField=async(field,dateField)=>{
@@ -200,22 +208,37 @@ export default function ClientDossier({client,user,lang,allUsers,onClose,onUpdat
             {/* Compliance */}
             <div style={cardStyle}>
               <div style={{fontSize:11,fontWeight:700,color:MUTED,textTransform:"uppercase",letterSpacing:".05em",marginBottom:10}}>Conformité</div>
+              {/* LPRPDE + Formulaire médical — toujours ensemble */}
+              <div style={{background:client.lprpde_consent&&client.medical_form_signed?"#D5FFC5":"#FEF3C7",border:`1px solid ${client.lprpde_consent&&client.medical_form_signed?"#97C459":"#FCD34D"}`,borderRadius:8,padding:"8px 10px",marginBottom:8}}>
+                <div style={{fontSize:11,fontWeight:700,color:NAVY,marginBottom:6}}>🩺 {sl(lang,"Formulaire médical + LPRPDE","Medical form + PIPEDA")}</div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                  <span style={{fontSize:11,color:MUTED}}>LPRPDE</span>
+                  {client.lprpde_consent
+                    ?<span style={{fontSize:11,color:GREEN,fontWeight:600}}>✓</span>
+                    :!client.readOnly&&<button onClick={()=>toggleField("lprpde_consent","lprpde_consent_date")} style={{fontSize:10,background:"#FEF3C7",color:"#92400E",border:"1px solid #FCD34D",borderRadius:5,padding:"2px 8px",cursor:"pointer",fontWeight:600}}>Marquer ✓</button>
+                  }
+                </div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <span style={{fontSize:11,color:MUTED}}>{sl(lang,"Formulaire médical","Medical form")}</span>
+                  {client.medical_form_signed
+                    ?<span style={{fontSize:11,color:GREEN,fontWeight:600}}>✓</span>
+                    :<span style={{fontSize:11,color:RED,fontWeight:600}}>✗</span>
+                  }
+                </div>
+              </div>
+              {/* Service Agreement */}
               {[
-                {l:"LPRPDE",ok:client.lprpde_consent,field:"lprpde_consent",df:"lprpde_consent_date"},
-                {l:"Waiver",ok:client.waiver_signed,field:"waiver_signed",df:"waiver_signed_date"},
-                {l:sl(lang,"Formulaire médical","Medical form"),ok:client.medical_form_signed},
                 {l:"Service Agreement",ok:client.service_agreement_signed},
               ].map((f,i)=>(
                 <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${BORDER}`}}>
                   <span style={{fontSize:12,color:MUTED}}>{f.l}</span>
                   {f.ok
                     ?<span style={{fontSize:11,color:GREEN,fontWeight:600}}>✓ Signé</span>
-                    :f.field&&!client.readOnly
-                      ?<button onClick={()=>toggleField(f.field,f.df)} style={{fontSize:10,background:"#FEF3C7",color:"#92400E",border:"1px solid #FCD34D",borderRadius:5,padding:"2px 8px",cursor:"pointer",fontWeight:600}}>Marquer ✓</button>
-                      :<span style={{fontSize:11,color:RED,fontWeight:600}}>✗ {sl(lang,"Requis","Required")}</span>
+                    :<span style={{fontSize:11,color:RED,fontWeight:600}}>✗ {sl(lang,"Requis","Required")}</span>
                   }
                 </div>
               ))}
+              <div style={{fontSize:10,color:MUTED,marginTop:6,fontStyle:"italic"}}>* Waiver inclus sur la facture client</div>
             </div>
 
             {/* Payment status */}
@@ -515,7 +538,7 @@ export default function ClientDossier({client,user,lang,allUsers,onClose,onUpdat
                 <div style={{fontSize:11,color:MUTED,marginBottom:10}}>
                   {sl(lang,"Nomenclature","Naming")}: <strong style={{color:TEAL}}>{cl}-{client.dossier_number}-[TYPE].pdf</strong>
                 </div>
-                {["Medical-History","Waiver-Signed","LPRPDE-Consent","Service-Agreement","Warranty-Certificate","Quote","Invoice"].map((dt,i)=>{
+                {["Medical-History","LPRPDE-Consent","Service-Agreement","Warranty-Certificate","Quote","Invoice"].map((dt,i)=>{
                   const fn=docFilename(cl,client.dossier_number||"DOSSIER",dt);
                   const ex=docs.find(d=>d.document_type===dt);
                   return(
