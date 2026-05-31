@@ -1,4 +1,4 @@
-import{useState,useEffect}from"react";
+import{useState,useEffect,useRef}from"react";
 import{hashPassword,verifyPassword,saveSession}from"../lib/auth";
 import{getUsers,updateUser}from"../lib/api";
 import{NAVY,TEAL,GOLD}from"../lib/constants";
@@ -12,7 +12,9 @@ export default function Login({onLogin}){
   const[loading,setLoading]=useState(true);
   const[saving,setSaving]=useState(false);
   const[mode,setMode]=useState("login");
-  const[superChoice,setSuperChoice]=useState(null);
+  const[superChoice,setSuperChoice]=useState(false);
+  // Store the fully-updated user object for super admin choice
+  const readyUserRef=useRef(null);
 
   useEffect(()=>{getUsers().then(d=>{setUsers(d||[]);setLoading(false);}).catch(()=>setLoading(false));},[]);
 
@@ -24,33 +26,38 @@ export default function Login({onLogin}){
   useEffect(()=>{
     if(selected){
       setMode(isFirst||needsReset?"create":"login");
-      setErr(""); setPw(""); setPw2(""); setSuperChoice(null);
+      setErr("");setPw("");setPw2("");setSuperChoice(false);readyUserRef.current=null;
     }
   },[uid]);
 
   const submit=async()=>{
     if(!selected)return;
-    setErr(""); setSaving(true);
+    setErr("");setSaving(true);
     try{
       if(mode==="create"){
         if(pw.length<6){setErr("Minimum 6 caractères.");setSaving(false);return;}
         if(pw!==pw2){setErr("Les mots de passe ne correspondent pas.");setSaving(false);return;}
         const hash=await hashPassword(pw);
         await updateUser(selected.id,{password_hash:hash,is_first_login:false,password_reset_required:false});
-        const u={...selected,password_hash:hash,is_first_login:false};
-        if(isSuperAdmin){setSuperChoice("ask");setSaving(false);return;}
-        saveSession(u); onLogin(u);
+        const u={...selected,password_hash:hash,is_first_login:false,password_reset_required:false};
+        if(isSuperAdmin){readyUserRef.current=u;setSuperChoice(true);setSaving(false);return;}
+        saveSession(u);onLogin(u);
       } else {
         if(!pw){setErr("Entrez votre mot de passe.");setSaving(false);return;}
         const ok=await verifyPassword(pw,selected.password_hash);
         if(!ok){setErr("Mot de passe incorrect.");setSaving(false);return;}
-        if(isSuperAdmin&&!superChoice){setSuperChoice("ask");setSaving(false);return;}
-        const role=superChoice==="super"?"super_admin":"super_user";
-        const u=superChoice?{...selected,role}:selected;
-        saveSession(u); onLogin(u);
+        const u={...selected};
+        if(isSuperAdmin){readyUserRef.current=u;setSuperChoice(true);setSaving(false);return;}
+        saveSession(u);onLogin(u);
       }
-    }catch(e){setErr("Erreur de connexion.");}
+    }catch(e){setErr("Erreur de connexion. Réessayez.");}
     setSaving(false);
+  };
+
+  const connectAs=(asSuperAdmin)=>{
+    const base=readyUserRef.current||{...selected};
+    const u=asSuperAdmin?{...base,role:"super_admin"}:{...base,role:"super_user"};
+    saveSession(u);onLogin(u);
   };
 
   const k=e=>{if(e.key==="Enter")submit();};
@@ -68,17 +75,19 @@ export default function Login({onLogin}){
     choiceBtn:{width:"100%",border:"1.5px solid #E2E8F0",borderRadius:10,padding:"12px 16px",fontSize:14,cursor:"pointer",marginBottom:10,textAlign:"left",display:"flex",alignItems:"center",gap:10,background:"#F9FAFB"},
   };
 
-  if(superChoice==="ask"){
+  // Super Admin choice screen
+  if(superChoice){
+    const userName=(readyUserRef.current||selected)?.first_name||"Pascal";
     return(
       <div style={s.wrap}>
         <div style={s.card}>
-          <div style={s.title}>Connexion — {selected?.first_name}</div>
+          <div style={s.title}>Connexion — {userName}</div>
           <div style={s.sub}>Comment souhaitez-vous vous connecter ?</div>
-          <button style={{...s.choiceBtn,borderColor:NAVY}} onClick={()=>{const u={...selected};saveSession(u);onLogin(u);}}>
+          <button style={{...s.choiceBtn,borderColor:NAVY}} onClick={()=>connectAs(false)}>
             <span style={{fontSize:20}}>👤</span>
             <div><div style={{fontWeight:600,color:NAVY}}>Pascal — NorthBridge</div><div style={{fontSize:12,color:"#6B7280"}}>Accès standard</div></div>
           </button>
-          <button style={{...s.choiceBtn,borderColor:"#C49A3C"}} onClick={()=>{const u={...selected,role:"super_admin"};saveSession(u);onLogin(u);}}>
+          <button style={{...s.choiceBtn,borderColor:GOLD,background:"#FFFBEB"}} onClick={()=>connectAs(true)}>
             <span style={{fontSize:20}}>⚡</span>
             <div><div style={{fontWeight:600,color:"#92400E"}}>Super Admin</div><div style={{fontSize:12,color:"#6B7280"}}>Accès complet — tous les droits</div></div>
           </button>
@@ -96,14 +105,12 @@ export default function Login({onLogin}){
       <div style={s.card}>
         <div style={s.title}>{mode==="create"?"Créez votre mot de passe":"Bonjour 👋"}</div>
         <div style={s.sub}>{mode==="create"?"Première connexion — choisissez un mot de passe.":"Connectez-vous au CRM NorthBridge."}</div>
-
         {loading?<div style={{textAlign:"center",color:"#6B7280",padding:20}}>Chargement...</div>:<>
           <label style={s.label}>Qui êtes-vous ?</label>
           <select value={uid} onChange={e=>setUid(e.target.value)} style={s.select}>
             <option value="">— Sélectionner —</option>
             {users.map(u=><option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>)}
           </select>
-
           {uid&&<>
             <label style={s.label}>{mode==="create"?"Nouveau mot de passe":"Mot de passe"}</label>
             <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={k}
