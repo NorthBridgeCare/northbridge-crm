@@ -17,12 +17,10 @@ export const STAGES=[
 export const PROCEDURES=["Transplantation capillaire","Rhinoplastie","Augmentation mammaire","LipoHD Vaser","Chirurgie obésité","Soins dentaires"];
 export const SOURCES=["Instagram","Facebook","TikTok","LinkedIn","X (Twitter)","D Plastic Surgery","Référence client","Google / SEO","Site web","Autre"];
 export const PROVINCE_REGIONS={
-  "Ontario":["Ontario","Ottawa-Gatineau","GTA","Autre"],
-  "Québec":["Québec","Montréal","Gatineau","Autre"],
-  "Alberta":["Alberta","Calgary","Edmonton","Autre"],
-  "Colombie-Britannique":["Colombie-Britannique","Vancouver","Autre"],
-  "Autre":["Autre"],
+  "Ontario":["GTA","Ottawa-Gatineau","Autre"],
+  "Québec":["Grand Gatineau","Papineau","Autre"],
 };
+export const PROVINCES=["Ontario","Québec"];
 export const PROC_COLORS={
   "Transplantation capillaire":["#A4E988","#1B5E20"],
   "Rhinoplastie":["#A2F5FF","#006064"],
