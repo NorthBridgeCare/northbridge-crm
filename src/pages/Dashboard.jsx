@@ -4,7 +4,7 @@ import{clearSession}from"../lib/auth";
 import{STAGES,PROCEDURES,SOURCES,PROC_COLORS,NAVY,TEAL,CYAN,GOLD,BG,BORDER,MUTED,GREEN,RED}from"../lib/constants";
 import ClientDossier from"../components/ClientDossier/index";
 import NewClientForm from"../components/NewClientForm";
-import UserSettings from"../components/UserSettings";
+import UserSettings from"../components/UserSettings;
 const sl=(lang,fr,en)=>lang==="FR"?fr:en;
 const stageOf=n=>STAGES[n-1]||STAGES[0];
 const procBg=p=>(PROC_COLORS[p]||["#E2E8F0","#475569"])[0];
@@ -169,7 +169,7 @@ export default function Dashboard({user,onLogout}){
                 <div style={{fontSize:11,color:MUTED}}>{c.dossier_number} · {c.procedure} · {sl(lang,"Archivé","Archived")} {c.archived_at?new Date(c.archived_at).toLocaleDateString(lang==="FR"?"fr-CA":"en-CA"):""}</div>
               </div>
               <span style={{background:st.bg,color:st.tx,borderRadius:20,padding:"3px 9px",fontSize:11,fontWeight:600}}>{lang==="FR"?st.fr:st.en}</span>
-              <div style={{display:"flex",gap:8"}}>
+              <div style={{display:"flex",gap:8}}>
                 <button onClick={()=>openDossier({...c,readOnly:true})} style={{fontSize:11,background:BG,color:NAVY,border:`1px solid ${BORDER}`,borderRadius:7,padding:"5px 10px",cursor:"pointer",fontWeight:500}}>👁 {sl(lang,"Voir","View")}</button>
                 <button onClick={()=>reactivate(c)} style={{fontSize:11,background:"#E1F5EE",color:GREEN,border:"1px solid #9FE1CB",borderRadius:7,padding:"5px 10px",cursor:"pointer",fontWeight:600}}>♻️ {sl(lang,"Réactiver","Reactivate")}</button>
               </div>
