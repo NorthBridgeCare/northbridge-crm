@@ -204,14 +204,20 @@ export default function ClientDossier({client,user,lang,allUsers,onClose,onUpdat
                 </div>
               ):(
                 <div>
+                  {(client.is_transfer_from_dany||client.dany_dossier_number)&&(
+                    <div style={{background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:7,padding:"7px 10px",marginBottom:8}}>
+                      <div style={{fontSize:10,fontWeight:700,color:"#92400E",marginBottom:2}}>🔄 Transfert D Plastic Surgery</div>
+                      <div style={{fontSize:13,fontWeight:700,color:"#633806"}}>{client.dany_dossier_number||"N° DP non spécifié"}</div>
+                    </div>
+                  )}
                   {[
-                    {l:"Email",v:client.email||"—"},
+                    {l:"Email",v:client.email||"—"},nt.email||"—"},
                     {l:sl(lang,"Téléphone","Phone"),v:fmtPhone(client.phone)},
                     {l:sl(lang,"Procédure","Procedure"),v:client.procedure||"—"},
                     {l:"Source",v:client.source||"—"},
                     {l:"Province",v:client.province_residence||"—"},
                     {l:sl(lang,"Région","Region"),v:client.region||"—"},
-                    ...(client.is_transfer_from_dany&&client.dany_dossier_number?[{l:"Dossier DP",v:client.dany_dossier_number}]:[]),
+                    
                   ].map((f,i)=>(
                     <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"6px 0",borderBottom:`1px solid ${BORDER}`,fontSize:12}}>
                       <span style={{color:MUTED,flexShrink:0}}>{f.l}</span>
