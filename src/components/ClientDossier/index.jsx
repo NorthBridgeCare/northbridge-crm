@@ -210,8 +210,14 @@ export default function ClientDossier({client,user,lang,allUsers,onClose,onUpdat
                       <div style={{fontSize:13,fontWeight:700,color:"#633806"}}>{client.dany_dossier_number||"N° DP non spécifié"}</div>
                     </div>
                   )}
-                  {[
-                    {l:"Email",v:client.email||"—"},nt.email||"—"},
+                  {(client.is_transfer_from_dany||client.dany_dossier_number)&&(
+                    <div style={{background:"#FEF3C7",border:"1px solid #FCD34D",borderRadius:7,padding:"7px 10px",marginBottom:8}}>
+                      <div style={{fontSize:10,fontWeight:700,color:"#92400E",marginBottom:2}}>🔄 Transfert D Plastic Surgery</div>
+                      <div style={{fontSize:13,fontWeight:700,color:"#633806"}}>{client.dany_dossier_number||"N° DP non spécifié"}</div>
+                    </div>
+                  )}
+                                    {[
+                    {l:"Email",v:client.email||"—"},
                     {l:sl(lang,"Téléphone","Phone"),v:fmtPhone(client.phone)},
                     {l:sl(lang,"Procédure","Procedure"),v:client.procedure||"—"},
                     {l:"Source",v:client.source||"—"},
