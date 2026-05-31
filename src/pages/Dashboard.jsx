@@ -11,10 +11,10 @@ const procBg=p=>(PROC_COLORS[p]||["#E2E8F0","#475569"])[0];
 const procTx=p=>(PROC_COLORS[p]||["#E2E8F0","#475569"])[1];
 const initials=c=>`${(c.first_name||"")[0]||""}${(c.last_name||"")[0]||""}`.toUpperCase();
 const NB_LOGO=()=>(
-  <svg height="28" viewBox="0 0 160 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="21" fontFamily="'DM Sans',sans-serif" fontSize="17" fontWeight="600" fill="white" opacity="0.92">NorthBridge</text>
-    <text x="105" y="21" fontFamily="'DM Sans',sans-serif" fontSize="11" fontWeight="400" fill="#1BC4D8" opacity="0.9">Medical</text>
-  </svg>
+  <div style={{display:"flex",alignItems:"baseline",gap:4}}>
+    <span style={{color:"#fff",fontSize:16,fontWeight:600,opacity:.92}}>NorthBridge</span>
+    <span style={{color:"#1BC4D8",fontSize:11,fontWeight:400,opacity:.9}}>Medical</span>
+  </div>
 );
 
 export default function Dashboard({user,onLogout}){
