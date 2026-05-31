@@ -1,7 +1,7 @@
 import{useState,useEffect,useCallback}from"react";
 import{getClients,createClient,updateClient,getSessions,lockClient,unlockClient,getUsers,updateUser,addAudit}from"../lib/api";
 import{clearSession}from"../lib/auth";
-import{STAGES,PROCEDURES,SOURCES,PROC_COLORS,NAVY,TEAL,CYAN,GOLD,BG,BORDER,MUTED}from"../lib/constants";
+import{STAGES,PROCEDURES,SOURCES,PROC_COLORS,NAVY,TEAL,CYAN,GOLD,BG,BORDER,MUTED,GREEN,RED}from"../lib/constants";
 import ClientDossier from"../components/ClientDossier/index";
 import NewClientForm from"../components/NewClientForm";
 import UserSettings from"../components/UserSettings";
